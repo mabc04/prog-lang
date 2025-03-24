@@ -1,0 +1,118 @@
+package main
+
+import (
+	"encoding/json"
+	"os"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
+)
+
+type Task struct {
+	Name     string `json:"name"`
+	Complete bool   `json:"complete"`
+}
+
+var tasks []Task
+var selectedTaskIndex int = -1
+
+func main() {
+	myApp := app.New()
+	myWindow := myApp.NewWindow("Task Manager")
+
+	taskEntry := widget.NewEntry()
+	taskList := widget.NewList(
+		func() int {
+			return len(tasks)
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("")
+		},
+		func(i widget.ListItemID, obj fyne.CanvasObject) {
+			task := tasks[i]
+			if task.Complete {
+				obj.(*widget.Label).SetText("[✔] " + task.Name)
+			} else {
+				obj.(*widget.Label).SetText("[ ] " + task.Name)
+			}
+		},
+	)
+
+	taskList.OnSelected = func(id widget.ListItemID) {
+		selectedTaskIndex = id
+	}
+
+	addTask := widget.NewButton("Add Task", func() {
+		task := Task{Name: taskEntry.Text, Complete: false}
+		tasks = append(tasks, task)
+		saveTasksToJSON()
+		taskEntry.SetText("")
+		taskList.Refresh()
+	})
+
+	markComplete := widget.NewButton("Mark Complete", func() {
+		if selectedTaskIndex >= 0 && selectedTaskIndex < len(tasks) {
+			tasks[selectedTaskIndex].Complete = true
+			saveTasksToJSON()
+			taskList.Refresh()
+		}
+	})
+
+	deleteTask := widget.NewButton("Delete Task", func() {
+		if selectedTaskIndex >= 0 && selectedTaskIndex < len(tasks) {
+			tasks = append(tasks[:selectedTaskIndex], tasks[selectedTaskIndex+1:]...)
+			saveTasksToJSON()
+			taskList.Refresh()
+			selectedTaskIndex = -1
+		}
+	})
+
+	loadTasks := widget.NewButton("Load Tasks", func() {
+		loadTasksFromJSON()
+		taskList.Refresh()
+	})
+
+	buttons := container.NewVBox(
+		widget.NewLabel("Enter your task:"),
+		taskEntry,
+		addTask,
+		markComplete,
+		deleteTask,
+		loadTasks,
+		taskList,
+	)
+
+	myWindow.SetContent(buttons)
+	myWindow.Resize(fyne.NewSize(400, 400))
+	myWindow.ShowAndRun()
+}
+
+func saveTasksToJSON() {
+	file, err := os.Create("tasks.json")
+	if err != nil {
+		fyne.LogError("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	if err := encoder.Encode(tasks); err != nil {
+		fyne.LogError("Error encoding JSON:", err)
+	}
+}
+
+func loadTasksFromJSON() {
+	file, err := os.Open("tasks.json")
+	if err != nil {
+		fyne.LogError("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&tasks); err != nil {
+		fyne.LogError("Error decoding JSON:", err)
+	}
+}

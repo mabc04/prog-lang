@@ -1,0 +1,81 @@
+use strict;
+use warnings;
+use Prima qw(Application Buttons InputLine Label);
+
+my $main_window = Prima::MainWindow->new(
+    text    => 'Perl Calculator',
+    size    => [300, 300],
+);
+
+
+my $input1 = $main_window->insert(InputLine =>
+    origin => [20, 200],
+    size   => [100, 30],
+);
+
+my $input2 = $main_window->insert(InputLine =>
+    origin => [140, 200],
+    size   => [100, 30],
+);
+
+my $result_label = $main_window->insert(Label =>
+    origin => [20, 100],
+    size   => [220, 30],
+    text   => 'Result:',
+);
+
+$main_window->insert(Button =>
+    text    => '+',
+    origin  => [20, 150],
+    size    => [50, 30],
+    onClick => sub {
+        my $num1 = $input1->text;
+        my $num2 = $input2->text;
+        $result_label->text('Result: ' . ($num1 + $num2));
+    },
+);
+
+$main_window->insert(Button =>
+    text    => '-',
+    origin  => [80, 150],
+    size    => [50, 30],
+    onClick => sub {
+        my $num1 = $input1->text;
+        my $num2 = $input2->text;
+        $result_label->text('Result: ' . ($num1 - $num2));
+    },
+);
+
+$main_window->insert(Button
+=>
+    text => '*',
+    origin =>[140, 150],
+    size =>[50, 30],
+    onClick => sub {
+        my $num1 =
+    $input1->text;
+        my $num2 =
+    $input2->text;
+
+    $result_label->text('Result:'.
+    ($num1 * $num2));
+    },
+);
+
+$main_window->insert(Button
+=>
+    text=> '*',
+    origin =>[200, 150],
+    size =>[50, 30],
+    onClick => sub {
+        my $num1 =
+    $input1->text;
+        my $num2 =
+    $input2->text;
+
+    $result_label->text('Result:'.
+    ($num1 / $num2))
+    },
+);
+
+run Prima;

@@ -1,0 +1,58 @@
+<?php
+$jsonFile = 'guestbook.json';
+
+if (!file_exists($jsonFile)) {
+    file_put_contents($jsonFile, json_encode([]));
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'];
+    $message = $_POST['message'];
+
+    $entries = json_decode(file_get_contents($jsonFile), true);
+
+    $newEntry = [
+        'name' => $name,
+        'message' => $message,
+        'date' => date('Y-m-d H:i:s')
+    ];
+    $entries[] = $newEntry;
+
+    file_put_contents($jsonFile, json_encode($entries));
+
+    echo "<p>Message added successfully!</p>";
+}
+
+$entries = json_decode(file_get_contents($jsonFile), true);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guestbook</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Guestbook</h1>
+
+    <form method="POST" action="">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <textarea name="message" placeholder="Your Message" required></textarea>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Messages:</h2>
+
+    <ul>
+        <?php foreach ($entries as $entry): ?>
+            <li>
+                <strong><?php echo htmlspecialchars($entry['name']); ?></strong>
+                <p><?php echo htmlspecialchars($entry['message']); ?></p>
+                <small><?php echo $entry['date']; ?></small>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</body>
+</html>
